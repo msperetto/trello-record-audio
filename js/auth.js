@@ -10,22 +10,19 @@ var tokenLooksValid = function () {
 };
 
 document.getElementById('auth-btn').addEventListener('click', function () {
-    t.authorize(trelloAuthUrl, { height: 680, width: 580, validToken: tokenLooksValid })
-        .then(function () {
-            var token = window.localStorage.getItem('trello_token_v3');
-            if (token) {
-                return t.set('member', 'private', 'trelloToken', token)
-                    .then(function () {
-                        return t.closePopup();
-                    });
-            } else {
-                console.error("No token v3 found in localStorage.");
-                // try to prompt error
-                alert("Please check if your browser blocks third-party cookies/storage. Auth failed.");
-                return t.closePopup();
-            }
+    t.getRestApi()
+        .authorize({
+            scope: 'read,write',
+            expiration: 'never'
+        })
+        .then(function (token) {
+            // Trello handles the storage and retrieval internally with this method.
+            return t.set('member', 'private', 'trelloToken', token)
+                .then(function () {
+                    return t.closePopup();
+                });
         })
         .catch(function (error) {
-            console.error('Authorization failed', error);
+            console.error('REST API Authorization failed', error);
         });
 });
