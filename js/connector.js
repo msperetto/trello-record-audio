@@ -4,18 +4,6 @@ const TRELLO_APP_KEY = '478015f652ba5eb4990f7ccbeb19e6a9';
 const ICON_URL = './mic.svg?v=1';
 
 window.TrelloPowerUp.initialize({
-    'board-buttons': function (t, options) {
-        return [{
-            icon: ICON_URL,
-            text: 'Debug Audio PU v10',
-            callback: function (t) {
-                return t.alert({
-                    message: 'Audio Power-Up v10 is running!',
-                    duration: 3,
-                });
-            }
-        }];
-    },
 
     'card-buttons': function (t, options) {
         return [{

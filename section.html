@@ -124,9 +124,10 @@
         .dropdown {
             display: none;
             position: absolute;
-            right: 36px;
-            top: 4px;
-            /* default; overridden dynamically by JS */
+            right: 32px;
+            /* opens sideways to the left of the ⋮ button */
+            top: 50%;
+            transform: translateY(-50%);
             background: white;
             border: 1px solid #DFE1E6;
             border-radius: 4px;
