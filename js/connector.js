@@ -5,13 +5,12 @@ const ICON_URL = './mic.svg?v=1'; // Using relative path and version cache buste
 
 window.TrelloPowerUp.initialize({
     'board-buttons': function (t, options) {
-        console.log("Audio Record Power-Up: v7");
         return [{
             icon: ICON_URL,
-            text: 'Debug Audio PU v7',
+            text: 'Debug Audio PU v8',
             callback: function (t) {
                 return t.alert({
-                    message: 'Audio Power-Up v7 is running!',
+                    message: 'Audio Power-Up v8 is running!',
                     duration: 3,
                 });
             }
@@ -19,11 +18,9 @@ window.TrelloPowerUp.initialize({
     },
 
     'card-buttons': function (t, options) {
-        console.log("Audio Record Power-Up: 'card-buttons' v7");
-
         return [{
             icon: ICON_URL,
-            text: 'Record Audio (v7)',
+            text: 'Record Audio',
             callback: function (t) {
                 return t.get('member', 'private', 'trelloToken')
                     .then(function (token) {
@@ -31,7 +28,7 @@ window.TrelloPowerUp.initialize({
                             return t.popup({
                                 title: 'Authorize Power-Up',
                                 url: './auth.html',
-                                height: 140
+                                height: 250
                             });
                         } else {
                             return t.modal({
@@ -46,29 +43,17 @@ window.TrelloPowerUp.initialize({
         }];
     },
 
-    'attachment-sections': function (t, options) {
-        // Claim our recorded audio files.
-        // They are saved starting with "Trello Audio -" or as ".webm" or ".mp3"
-        // Also, looking for URLs on our side if stored remotely, but here they are Trello's AWS S3 attachments
-        var claimed = options.entries.filter(function (attachment) {
-            return attachment.name && (attachment.name.startsWith('Trello Audio -') || attachment.name.endsWith('.webm'));
-        });
-
-        if (claimed && claimed.length > 0) {
-            return [{
-                id: 'AudioRecords',
-                claimed: claimed,
-                icon: ICON_URL,
-                title: 'Recorded Audios',
-                content: {
-                    type: 'iframe',
-                    url: t.signUrl('./section.html'),
-                    height: 100 // We will sizeTo() dynamically in the iframe
-                }
-            }];
-        } else {
-            return [];
-        }
+    'card-back-section': function (t, options) {
+        // Always render our section on the card back — it will check for recordings inside
+        return {
+            title: '🎙️ Recorded Audios',
+            icon: ICON_URL,
+            content: {
+                type: 'iframe',
+                url: t.signUrl('./section.html'),
+                height: 60
+            }
+        };
     },
 
     'authorization-status': function (t, options) {
@@ -85,7 +70,7 @@ window.TrelloPowerUp.initialize({
         return t.popup({
             title: 'Authorize Power-Up',
             url: './auth.html',
-            height: 140,
+            height: 250,
         });
     }
 }, {
