@@ -112,7 +112,7 @@ function createAudioItem(att, cardId, token, nameMap) {
 
     var renameItem = document.createElement('button');
     renameItem.className = 'dropdown-item';
-    renameItem.innerText = '✏️  Rename';
+    renameItem.innerText = 'Rename';
     renameItem.addEventListener('click', function () {
         closeAllDropdowns();
         renameAttachment(att.id, displayName, function () {
@@ -121,8 +121,8 @@ function createAudioItem(att, cardId, token, nameMap) {
     });
 
     var deleteItem = document.createElement('button');
-    deleteItem.className = 'dropdown-item danger';
-    deleteItem.innerText = '🗑️  Delete';
+    deleteItem.className = 'dropdown-item';
+    deleteItem.innerText = 'Delete';
     deleteItem.addEventListener('click', function () {
         closeAllDropdowns();
         if (window.confirm('Delete this recording?')) {
