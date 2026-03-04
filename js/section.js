@@ -204,7 +204,10 @@ function createAudioItem(att, cardId, token, nameMap) {
     return item;
 }
 
+var renderGeneration = 0;
+
 function renderSection() {
+    var myGeneration = ++renderGeneration;
     var list = document.getElementById('audio-list');
     list.innerHTML = '';
 
@@ -213,22 +216,28 @@ function renderSection() {
         t.get('card', 'shared', 'audioNames'),
         t.get('member', 'private', 'trelloToken')
     ]).then(function (results) {
+        // A newer render started while we were waiting — discard this result
+        if (myGeneration !== renderGeneration) return;
+
         var card = results[0];
         var nameMap = results[1] || {};
         var token = results[2];
 
-        // Deduplicate by attachment ID to prevent double display
+        // Deduplicate: first by ID, then by URL as a safety net
         var seenIds = {};
+        var seenUrls = {};
         var audioAttachments = (card.attachments || []).filter(function (a) {
             if (!a.name) return false;
-            if (seenIds[a.id]) return false;
+            if (seenIds[a.id] || seenUrls[a.url]) return false;
             if (a.name.startsWith('Trello Audio -') || a.name.endsWith('.webm')) {
                 seenIds[a.id] = true;
+                seenUrls[a.url] = true;
                 return true;
             }
             return false;
         });
 
+        list.innerHTML = ''; // clear again here, safely inside the resolved promise
         audioAttachments.forEach(function (att) {
             list.appendChild(createAudioItem(att, card.id, token, nameMap));
         });
@@ -238,3 +247,4 @@ function renderSection() {
 }
 
 t.render(renderSection);
+
