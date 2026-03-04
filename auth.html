@@ -7,9 +7,20 @@
 </head>
 
 <body>
-    <div class="container">
-        <p>This Power-Up needs access to your Trello account so it can upload audio to your cards.</p>
-        <button id="auth-btn">Authorize Audio Record</button>
+    <div class="container" style="padding: 16px; text-align: left; gap: 8px;">
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #5E6C84;">
+            1. Click the button below — a Trello authorization page will open in a new tab.
+        </p>
+        <button id="open-auth-btn">Open Trello Authorization ↗️</button>
+
+        <p style="margin: 8px 0; font-size: 14px; color: #5E6C84;">
+            2. After you allow it, Trello will show you a token. Copy it and paste it here:
+        </p>
+        <input id="token-input" type="text" placeholder="Paste your Trello token here"
+            style="width:100%; padding:8px; box-sizing:border-box; border:2px solid #DFE1E6; border-radius:3px; font-size:14px;" />
+
+        <button id="save-token-btn" style="margin-top: 8px; width: 100%;">Save Token & Authorize</button>
+        <div id="auth-status" style="font-size: 12px; color: #5E6C84; min-height: 16px; margin-top: 4px;"></div>
     </div>
     <script src="./js/auth.js"></script>
 </body>

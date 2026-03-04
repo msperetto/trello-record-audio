@@ -5,13 +5,13 @@ const ICON_URL = './mic.svg?v=1'; // Using relative path and version cache buste
 
 window.TrelloPowerUp.initialize({
     'board-buttons': function (t, options) {
-        console.log("Audio Record Power-Up: Trello called 'board-buttons' v5");
+        console.log("Audio Record Power-Up: Trello called 'board-buttons' v6");
         return [{
             icon: ICON_URL,
-            text: 'Debug Audio PU v5',
+            text: 'Debug Audio PU v6',
             callback: function (t) {
                 return t.alert({
-                    message: 'The Audio Power-Up capabilities are loading in Trello! (v5)',
+                    message: 'The Audio Power-Up capabilities are loading in Trello! (v6)',
                     duration: 3,
                 });
             }
@@ -19,11 +19,11 @@ window.TrelloPowerUp.initialize({
     },
 
     'card-buttons': function (t, options) {
-        console.log("Audio Record Power-Up: Trello called 'card-buttons' v5");
+        console.log("Audio Record Power-Up: Trello called 'card-buttons' v6");
 
         return [{
             icon: ICON_URL,
-            text: 'Record Audio (v5)',
+            text: 'Record Audio (v6)',
             callback: function (t) {
                 return t.get('member', 'private', 'trelloToken')
                     .then(function (token) {
