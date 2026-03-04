@@ -7,10 +7,10 @@ window.TrelloPowerUp.initialize({
     'board-buttons': function (t, options) {
         return [{
             icon: ICON_URL,
-            text: 'Debug Audio PU v9',
+            text: 'Debug Audio PU v10',
             callback: function (t) {
                 return t.alert({
-                    message: 'Audio Power-Up v9 is running!',
+                    message: 'Audio Power-Up v10 is running!',
                     duration: 3,
                 });
             }
@@ -43,7 +43,8 @@ window.TrelloPowerUp.initialize({
         }];
     },
 
-    // Claim the audio attachments so they are hidden from Trello's native attachment list
+    // Claim audio attachments so they do NOT appear in Trello's native attachments list.
+    // This single section also renders the custom player — no card-back-section needed.
     'attachment-sections': function (t, options) {
         var claimed = (options.entries || []).filter(function (attachment) {
             return attachment.name && (
@@ -52,42 +53,17 @@ window.TrelloPowerUp.initialize({
             );
         });
         if (claimed.length === 0) return [];
-        // Return a section with no visible content — the card-back-section handles display
         return [{
-            id: 'AudioRecordsHidden',
+            id: 'AudioRecords',
             claimed: claimed,
             icon: ICON_URL,
             title: 'Recorded Audios',
             content: {
                 type: 'iframe',
                 url: t.signUrl('./section.html'),
-                height: 10
+                height: claimed.length * 52 + 16
             }
         }];
-    },
-
-    // Only show the card-back-section when there are audio attachments
-    'card-back-section': function (t, options) {
-        return t.card('attachments').then(function (card) {
-            var audioAttachments = (card.attachments || []).filter(function (a) {
-                return a.name && (
-                    a.name.startsWith('Trello Audio -') ||
-                    a.name.endsWith('.webm')
-                );
-            });
-            if (audioAttachments.length === 0) {
-                return null; // Return null to hide section entirely when empty
-            }
-            return {
-                title: '🎙️ Recorded Audios',
-                icon: ICON_URL,
-                content: {
-                    type: 'iframe',
-                    url: t.signUrl('./section.html'),
-                    height: audioAttachments.length * 50 + 10
-                }
-            };
-        });
     },
 
     'authorization-status': function (t, options) {

@@ -11,11 +11,6 @@
             margin: 0;
         }
 
-        .empty-state {
-            display: none;
-            /* hidden — section won't load at all if empty, but just in case */
-        }
-
         .audio-item {
             display: flex;
             flex-direction: row;
@@ -23,11 +18,11 @@
             gap: 10px;
             background: #F0F2F5;
             border-radius: 20px;
-            padding: 7px 12px 7px 7px;
+            padding: 7px 4px 7px 7px;
             margin-bottom: 6px;
+            position: relative;
         }
 
-        /* Compact circular play/pause button */
         .play-btn {
             width: 28px;
             height: 28px;
@@ -51,21 +46,18 @@
             background: #EB5A46;
         }
 
-        /* SVG sized to fit button comfortably */
         .play-btn svg {
             width: 14px;
             height: 14px;
             fill: white;
             flex-shrink: 0;
             margin-left: 2px;
-            /* optical centering for play triangle */
         }
 
         .play-btn.playing svg {
             margin-left: 0;
         }
 
-        /* Right side: progress + meta stacked vertically */
         .audio-waveform {
             flex: 1;
             display: flex;
@@ -81,7 +73,6 @@
             background: #D0D4E0;
             border-radius: 2px;
             cursor: pointer;
-            position: relative;
         }
 
         .progress-fill {
@@ -94,7 +85,6 @@
         .audio-meta {
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
 
         .audio-duration {
@@ -109,7 +99,68 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 140px;
+            max-width: 120px;
+        }
+
+        /* Three-dot menu */
+        .menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #5E6C84;
+            font-size: 18px;
+            line-height: 1;
+            padding: 4px 6px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            letter-spacing: 1px;
+        }
+
+        .menu-btn:hover {
+            background: #DFE1E6;
+            color: #172B4D;
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            right: 36px;
+            top: 4px;
+            background: white;
+            border: 1px solid #DFE1E6;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            min-width: 130px;
+            overflow: hidden;
+        }
+
+        .dropdown.open {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 9px 14px;
+            font-size: 13px;
+            color: #172B4D;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background: #F4F5F7;
+        }
+
+        .dropdown-item.danger {
+            color: #EB5A46;
+        }
+
+        .dropdown-item.danger:hover {
+            background: #FFEDEB;
         }
 
         .hidden-audio {

@@ -1,5 +1,7 @@
 var t = window.TrelloPowerUp.iframe();
 
+const TRELLO_APP_KEY = '478015f652ba5eb4990f7ccbeb19e6a9';
+
 var PLAY_ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>';
 var PAUSE_ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
 
@@ -10,7 +12,48 @@ function formatTime(seconds) {
     return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
-function createAudioItem(att) {
+// Close all open dropdowns
+function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown.open').forEach(function (d) {
+        d.classList.remove('open');
+    });
+}
+
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.menu-btn')) {
+        closeAllDropdowns();
+    }
+});
+
+function deleteAttachment(cardId, attId, token, onSuccess) {
+    fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attId + '?key=' + TRELLO_APP_KEY + '&token=' + token, {
+        method: 'DELETE'
+    })
+        .then(function (res) {
+            if (res.ok) {
+                onSuccess();
+            } else {
+                alert('Delete failed. Please try again.');
+            }
+        })
+        .catch(function () {
+            alert('Delete failed. Please try again.');
+        });
+}
+
+function renameAttachment(attId, currentName, onSuccess) {
+    // Store custom name in card-scoped data
+    t.get('card', 'shared', 'audioNames').then(function (names) {
+        var nameMap = names || {};
+        var newName = window.prompt('Rename audio:', nameMap[attId] || currentName);
+        if (newName && newName.trim() && newName.trim() !== currentName) {
+            nameMap[attId] = newName.trim();
+            t.set('card', 'shared', 'audioNames', nameMap).then(onSuccess);
+        }
+    });
+}
+
+function createAudioItem(att, cardId, token, nameMap) {
     var item = document.createElement('div');
     item.className = 'audio-item';
 
@@ -27,13 +70,12 @@ function createAudioItem(att) {
     playBtn.innerHTML = PLAY_ICON;
     item.appendChild(playBtn);
 
-    // Waveform / progress area
+    // Waveform
     var waveform = document.createElement('div');
     waveform.className = 'audio-waveform';
 
     var track = document.createElement('div');
     track.className = 'progress-track';
-
     var fill = document.createElement('div');
     fill.className = 'progress-fill';
     track.appendChild(fill);
@@ -46,33 +88,73 @@ function createAudioItem(att) {
     duration.className = 'audio-duration';
     duration.innerText = '0:00';
 
-    // Shorten the name for display
-    var rawName = att.name || 'Audio';
+    var displayName = (nameMap && nameMap[att.id]) || att.name.replace('Trello Audio - ', '');
     var label = document.createElement('span');
     label.className = 'audio-label';
-    label.innerText = rawName.replace('Trello Audio - ', '').split(' ').slice(0, 3).join(' ');
-    label.title = rawName;
+    label.innerText = displayName;
+    label.title = displayName;
 
     meta.appendChild(duration);
     meta.appendChild(label);
     waveform.appendChild(meta);
     item.appendChild(waveform);
 
-    // Update duration once metadata loads
+    // Three-dot menu button
+    var menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.title = 'Options';
+    menuBtn.innerHTML = '&#8942;'; // vertical ellipsis ⋮
+    item.appendChild(menuBtn);
+
+    // Dropdown
+    var dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+
+    var renameItem = document.createElement('button');
+    renameItem.className = 'dropdown-item';
+    renameItem.innerText = '✏️  Rename';
+    renameItem.addEventListener('click', function () {
+        closeAllDropdowns();
+        renameAttachment(att.id, displayName, function () {
+            renderSection(); // re-render to show updated name
+        });
+    });
+
+    var deleteItem = document.createElement('button');
+    deleteItem.className = 'dropdown-item danger';
+    deleteItem.innerText = '🗑️  Delete';
+    deleteItem.addEventListener('click', function () {
+        closeAllDropdowns();
+        if (window.confirm('Delete this recording?')) {
+            deleteAttachment(cardId, att.id, token, function () {
+                renderSection();
+            });
+        }
+    });
+
+    dropdown.appendChild(renameItem);
+    dropdown.appendChild(deleteItem);
+    item.appendChild(dropdown);
+
+    menuBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.contains('open');
+        closeAllDropdowns();
+        if (!isOpen) dropdown.classList.add('open');
+    });
+
+    // Audio event listeners
     audio.addEventListener('loadedmetadata', function () {
         duration.innerText = formatTime(audio.duration);
     });
 
-    // Update progress bar
     audio.addEventListener('timeupdate', function () {
         if (audio.duration) {
-            var pct = (audio.currentTime / audio.duration) * 100;
-            fill.style.width = pct + '%';
+            fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
             duration.innerText = formatTime(audio.currentTime);
         }
     });
 
-    // On end: reset
     audio.addEventListener('ended', function () {
         playBtn.classList.remove('playing');
         playBtn.innerHTML = PLAY_ICON;
@@ -80,16 +162,12 @@ function createAudioItem(att) {
         duration.innerText = formatTime(audio.duration);
     });
 
-    // Click to seek
     track.addEventListener('click', function (e) {
         var rect = track.getBoundingClientRect();
-        var pct = (e.clientX - rect.left) / rect.width;
-        audio.currentTime = pct * audio.duration;
+        audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
     });
 
-    // Play / pause toggle
     playBtn.addEventListener('click', function () {
-        // Pause any other playing audio
         document.querySelectorAll('.hidden-audio').forEach(function (a) {
             if (a !== audio && !a.paused) {
                 a.pause();
@@ -97,7 +175,6 @@ function createAudioItem(att) {
                 if (btn) { btn.classList.remove('playing'); btn.innerHTML = PLAY_ICON; }
             }
         });
-
         if (audio.paused) {
             audio.play();
             playBtn.classList.add('playing');
@@ -112,25 +189,29 @@ function createAudioItem(att) {
     return item;
 }
 
-t.render(function () {
-    t.card('attachments')
-        .then(function (card) {
-            var attachments = card.attachments || [];
-            var audioAttachments = attachments.filter(function (a) {
-                return a.name && (a.name.startsWith('Trello Audio -') || a.name.endsWith('.webm'));
-            });
+function renderSection() {
+    var list = document.getElementById('audio-list');
+    list.innerHTML = '';
 
-            var list = document.getElementById('audio-list');
-            list.innerHTML = '';
+    Promise.all([
+        t.card('attachments', 'id'),
+        t.get('card', 'shared', 'audioNames'),
+        t.get('member', 'private', 'trelloToken')
+    ]).then(function (results) {
+        var card = results[0];
+        var nameMap = results[1] || {};
+        var token = results[2];
 
-            if (audioAttachments.length === 0) {
-                list.innerHTML = '<div class="empty-state">No recordings yet.</div>';
-            } else {
-                audioAttachments.forEach(function (att) {
-                    list.appendChild(createAudioItem(att));
-                });
-            }
-
-            return t.sizeTo(document.body);
+        var audioAttachments = (card.attachments || []).filter(function (a) {
+            return a.name && (a.name.startsWith('Trello Audio -') || a.name.endsWith('.webm'));
         });
-});
+
+        audioAttachments.forEach(function (att) {
+            list.appendChild(createAudioItem(att, card.id, token, nameMap));
+        });
+
+        return t.sizeTo(document.body);
+    });
+}
+
+t.render(renderSection);
