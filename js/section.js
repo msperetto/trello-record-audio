@@ -140,7 +140,22 @@ function createAudioItem(att, cardId, token, nameMap) {
         e.stopPropagation();
         var isOpen = dropdown.classList.contains('open');
         closeAllDropdowns();
-        if (!isOpen) dropdown.classList.add('open');
+        if (!isOpen) {
+            // Decide whether to open upward or downward based on space available
+            var rect = menuBtn.getBoundingClientRect();
+            var spaceBelow = window.innerHeight - rect.bottom;
+            var dropdownHeight = 56; // approx 2 items * 28px
+            if (spaceBelow < dropdownHeight) {
+                // Not enough below — open upward
+                dropdown.style.bottom = 'calc(100% - 8px)';
+                dropdown.style.top = 'auto';
+            } else {
+                // Enough space below — open downward
+                dropdown.style.top = '4px';
+                dropdown.style.bottom = 'auto';
+            }
+            dropdown.classList.add('open');
+        }
     });
 
     // Audio event listeners
@@ -202,8 +217,16 @@ function renderSection() {
         var nameMap = results[1] || {};
         var token = results[2];
 
+        // Deduplicate by attachment ID to prevent double display
+        var seenIds = {};
         var audioAttachments = (card.attachments || []).filter(function (a) {
-            return a.name && (a.name.startsWith('Trello Audio -') || a.name.endsWith('.webm'));
+            if (!a.name) return false;
+            if (seenIds[a.id]) return false;
+            if (a.name.startsWith('Trello Audio -') || a.name.endsWith('.webm')) {
+                seenIds[a.id] = true;
+                return true;
+            }
+            return false;
         });
 
         audioAttachments.forEach(function (att) {
