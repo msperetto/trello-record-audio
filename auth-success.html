@@ -9,21 +9,19 @@
     <script>
         // Automatically closes the Trello authorize popup and resolves the parent t.authorize with the token
         var hash = window.location.hash;
-        if (hash && hash.includes("token=")) {
-            var token = hash.split("token=")[1].split("&")[0];
-            window.localStorage.setItem('authorize-token', token);
+        var tokenMatch = hash.match(/[&#]token=([0-9a-f]{64})/);
+        if (tokenMatch) {
+            var token = tokenMatch[1];
+            try {
+                window.localStorage.setItem('trello_token_v3', token);
+            } catch (e) {
+                console.error("Local storage error:", e);
+            }
         }
 
         if (typeof window.TrelloPowerUp.util.authSuccess === 'function') {
             window.TrelloPowerUp.util.authSuccess();
         } else if (window.opener) {
-            var tokenMatch = hash.match(/[&#]token=([0-9a-f]{64})/);
-            if (tokenMatch) {
-                window.opener.postMessage(JSON.stringify({
-                    type: 'pluginAuthResponse',
-                    token: tokenMatch[1]
-                }), "*");
-            }
             window.close();
         }
     </script>

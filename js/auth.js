@@ -6,18 +6,24 @@ var oauthUrl = window.location.origin + window.location.pathname.replace('auth.h
 var trelloAuthUrl = `https://trello.com/1/authorize?expiration=never&name=Audio%20Record%20Power-Up&scope=read,write&key=${TRELLO_APP_KEY}&callback_method=fragment&return_url=${encodeURIComponent(oauthUrl)}`;
 
 var tokenLooksValid = function () {
-    return !!window.localStorage.getItem('authorize-token');
+    return true; // We accept any return to proceed with the promise
 };
 
 document.getElementById('auth-btn').addEventListener('click', function () {
     t.authorize(trelloAuthUrl, { height: 680, width: 580, validToken: tokenLooksValid })
         .then(function () {
-            var token = window.localStorage.getItem('authorize-token');
-            return t.set('member', 'private', 'trelloToken', token)
-                .then(function () {
-                    window.localStorage.removeItem('authorize-token');
-                    return t.closePopup();
-                });
+            var token = window.localStorage.getItem('trello_token_v3');
+            if (token) {
+                return t.set('member', 'private', 'trelloToken', token)
+                    .then(function () {
+                        return t.closePopup();
+                    });
+            } else {
+                console.error("No token v3 found in localStorage.");
+                // try to prompt error
+                alert("Please check if your browser blocks third-party cookies/storage. Auth failed.");
+                return t.closePopup();
+            }
         })
         .catch(function (error) {
             console.error('Authorization failed', error);
